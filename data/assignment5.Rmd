@@ -1,0 +1,275 @@
+---
+title: "FISH 497 Assignment 5"
+author: "Kristin Privitera-Johnson"
+date: "20 February 2021"
+output: rmdformats::downcute
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data exploration
+
+## Data description
+
+The data come from the [{FSAdata}](https://github.com/droglenc/FSAdata) package, which was created by [Derek Ogle](https://derekogle.com/) as part of his book [*Introductory Fisheries Analysis with R*](http://derekogle.com/IFAR/). The dataset contains information on the ages (subsample), and length and mass (all fish) for male and female Siscowet Lake Trout captured at four locations in Michigan waters of Lake Superior.
+
+## Format
+
+A data frame with 780 observations on the following 8 variables.
+
+1) `locID`: Locations (`Blind Sucker`, `Deer Park`, `Grand Marais`, `Little Lake Harbor`) 
+
+2) `pnldep`: Depth of gillnet panel in which the fish was captured  
+
+3) `mesh`: Gillnet stretch mesh measure  
+
+4) `fishID`: Unique fish identification code  
+
+5) `sex`: Sex (`F` = female; `M` = male)  
+
+6) `age`: Assigned ages (years)  
+
+7) `len`: Total length (mm)  
+
+8) `wgt`: Weight (g)  
+
+
+***
+
+## Read in the data 
+
+First, I read in the data and checked for missing observations. Not the most elegant approach, but quicker than scrolling through 780 rows of 8 variables.
+
+``` {r data}
+fish <- read.csv("siscowet.csv")
+head(fish)
+
+# Which variables have NAs?
+TF <- apply(X=fish, MARGIN=2, FUN=is.na)
+apply(X=TF, MARGIN=2, FUN=table)
+
+```
+
+There are quite a few `NA` values. Let's see how these affect some typical fisheries relationships.
+
+## What is the spread of the data?
+``` {r global}
+# Set up data inputs for by sex questions
+age_m <- fish$age[fish$sex=="M"]
+age_f <- fish$age[fish$sex=="F"]
+len_m <- fish$len[fish$sex=="M"]
+len_f <- fish$len[fish$sex=="F"]
+wgt_m <- fish$wgt[fish$sex=="M"]
+wgt_f <- fish$wgt[fish$sex=="F"]
+```
+
+First, I'm interested in how much data we may have for length and age.
+
+``` {r hist}
+# How much data do we have?
+hist(fish$len)
+hist(fish$age)
+```
+
+Looks like we have lengths for every fish sampled (no `NA`s) and those data seem centered around 500 mm. There are only 200 observations of age across the four sampling locations. Of those data, it seems we have a skewed age plot--most trout seem to be somewhere around 10 years old, but there are a few plus group members hanging out at closer to 20 years old.
+
+I don't know much about trout, so I'd like to see the shape of the age-length relationship.
+
+```{r agelen}
+# What is the age-length relationship (both sexes)?
+plot(x=fish$age, 
+     y=fish$len,
+     pch=19)
+```
+
+Could be flat, could be asymptotic. It's a shame I can only look at 200 observations of the 780, but perhaps we shouldn't be killing every trout surveyed. Moving on, I wonder if the observed trout exhibit sexual dimorphism.
+
+```{r agelensex}
+# How do the age-length curves look by sex? ####
+plot(x=age_m,
+     y=len_m,
+     pch=19,
+     col="darkgray")
+
+points(x=age_f,
+       y=len_f,
+       pch=19,
+       col="darkgreen")
+```
+
+Maybe not! I see there are some weight data as well. 
+
+
+```{r lenwgt}
+# What is the length-weight relationship (both sexes)?
+
+plot(x=fish$len,
+     y=fish$wgt,
+     pch=19)
+```
+
+Hello there, really big trout. What is your story?
+
+```{r phat}
+# Who are you?
+out <- which(fish$wgt > 5000)
+fish[out,]
+
+# How do you compare to the others?
+summary(fish$wgt)
+hist(fish$wgt)
+
+```
+
+Is she a BOFFF?! Or a different species? Or someone added an extra 0? I'll never know. Let's set her aside for a bit. I also note that there is only one missing weight observation here.
+
+```{r lenwgt2}
+
+# How do all the other fish look without the outlier?
+plot(x=fish$len[-out],
+     y=fish$wgt[-out],
+     pch=19)
+```
+
+This is more what I'm used to seeing. Let's see if there's any difference between sexes.
+
+```{r lenwgtsex}
+
+# How do the length-weight curves look by sex?
+plot(x=len_m,
+     y=wgt_m,
+     pch=19,
+     col="darkgray")
+
+points(x=len_f,
+       y=wgt_f,
+       pch=19,
+       col="darkgreen")
+```
+
+Perhaps not.
+
+## Location, location
+
+Here, I attempt to check out length and age across locations. I immediately threw an error with the first location because it appears that age data were not collected there, so the code below is adapted to skip that particular question at that location.
+
+```{r locations}
+## Locations ####
+loca <- unique(fish$locID)
+colr <- c("darkgray", "darkgreen", "darkblue", "pink")
+counter <- 0
+
+for (i in 1:length(loca)) {
+  rindex <- which(fish$locID==loca[i])
+  age <- fish[rindex,"age"]
+  len <- fish[rindex,"len"]
+  
+  if (all(is.na(age) | is.na(len))) {
+    print(paste(loca[i], "did not collect age or len data. Check."))
+    
+  } else {
+    counter <- counter + 1
+    
+    if (counter==1) {
+      plot(x=age,
+           y=len,
+           pch=19,
+           col=colr[i])
+      
+    } else {
+      points(x=age,
+             y=len,
+             pch=19,
+             col=colr[i])
+    }
+  }
+}
+
+legend(x="bottomright",
+       legend=loca,
+       col=colr,
+       pch=19,
+       bty="n")
+```
+
+There is no representation from `r loca[1]`. Investigating the `r loca[4]` may be interesting given the sample does not have any fish younger than 11. I don't immediately see much contrast between `r loca[2]` and `r loca[3]`. Let's check out the distribution of ages and lengths by location.
+
+
+```{r locaweight}
+par(mfrow=c(4,2), mar=c(5,5,2,3))
+for (j in 1:length(loca)) {
+  rindex <- which(fish$locID==loca[j])
+  age <- fish[rindex,"age"]
+  len <- fish[rindex,"len"]
+  if (!all(is.na(age))) {
+  hist(age, main=loca[j], xlim=c(0,25), ylim=c(0,40))
+  hist(len, main=loca[j], xlim=c(0,800), ylim=c(0,150))
+  } else {
+    plot(0)
+    hist(len, main=loca[j], ylim=c(0,150), xlim=c(0,800))
+  }
+}
+```
+
+Couple of things to note here. Deer Park has a big sample size and no age data. Grand Marais sampled trout represent a smaller age range and may be smaller. This leads me to be curious about the sampling protocol.
+
+## You know what grinds my Gears?
+People who chew with their mouth open. But that is neither here nor there. I'm curious about how many mesh sizes there are and how frequently there were used, by location. 
+
+```{r mesh}
+#Fish count by mesh size?
+meshbins <- unique(fish$mesh)
+hist(fish$mesh)
+
+# Fish count by mesh size by location?
+par(mfrow=c(4,1), mar=c(5,5,2,3))
+for (h in 1:length(loca)) {
+  rindex <- which(fish$locID==loca[h])
+  mesh <- fish[rindex,"mesh"]
+  hist(mesh, main=loca[h], ylim=c(0,100))
+}
+```
+
+I'm not super surprised here. Mesh size use was likely a part of the experimental design, so you would hope to see the same nets used at every location. Here's where I anticipate to see differences:
+
+```{r depth}
+
+par(mfrow=c(1,1))
+# Fish count by depth?
+hist(fish$pnldep,
+     xlim=c(0,120),
+     ylim=c(0,300))
+
+# Fish count by depth by location?
+par(mfrow=c(4,1), mar=c(5,5,2,3))
+for (m in 1:length(loca)) {
+  rindex <- which(fish$locID==loca[m])
+  dep <- fish[rindex,"pnldep"]
+  hist(dep, main=loca[m],
+       ylim=c(0,120), xlim=c(0,120))
+  
+}
+```
+
+If I were a betting woman, I would guess that these four locations have different physical features, like depth. I was most surprised to see Grand Marais having the widest range of depths sampled because my working hypothesis was that it had a more limited depth range and perhaps that is why we saw a subset age range and smaller trout.
+
+I was curious if there were any sex-specific differences in depth.
+
+
+```{r depthsex}
+
+# sex and depth
+dep_m <- fish[fish$sex=="M","pnldep"]
+dep_f <- fish[fish$sex=="F", "pnldep"]
+
+par(mfrow=c(1,2))
+hist(dep_m, ylim=c(0,130))
+hist(dep_f, ylim=c(0,130))
+
+```
+
+But this again yields nothing to write home about.
+
+# Data exposition
