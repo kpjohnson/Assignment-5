@@ -1,0 +1,74 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+
+# Background
+
+This week we learned about some graphic design principles, which included an example of creating an *expository* figure from an initial *exploratory* figure. Your assignment this week is to use the provided dataset to 
+
+1) begin by creating an *exploratory* figure you'd like about *any* aspect of the data, and  
+
+2) create an *expository* figure that builds upon your original figure.
+
+Your figure can include some aspect of data analysis (eg, linear regression), but there is no requirement for you to do so. You can use either **base graphics** or **ggplot2** to complete this assignment.
+
+Please make sure to take into consideration the concepts we discussed in class with respect to color palettes and accessibility. You may also want to consider the options that Jeff Leek used in his [demonstration](http://jtleek.com/ads2020/week-10.html#creating-expository-graphs), but it's not necessary that your figure contain all of the elements and styling that he included.
+
+***
+
+# Data description
+
+The data come from the [{FSAdata}](https://github.com/droglenc/FSAdata) package, which was created by [Derek Ogle](https://derekogle.com/) as part of his book [*Introductory Fisheries Analysis with R*](http://derekogle.com/IFAR/). The dataset contains information on the ages (subsample), and length and mass (all fish) for male and female Siscowet Lake Trout captured at four locations in Michigan waters of Lake Superior.
+
+## Format
+
+A data frame with 780 observations on the following 8 variables.
+
+1) `locID`: Locations (`Blind Sucker`, `Deer Park`, `Grand Marais`, `Little Lake Harbor`) 
+
+2) `pnldep`: Depth of gillnet panel in which the fish was captured  
+
+3) `mesh`: Gillnet stretch mesh measure  
+
+4) `fishID`: Unique fish identification code  
+
+5) `sex`: Sex (`F` = female; `M` = male)  
+
+6) `age`: Assigned ages (years)  
+
+7) `len`: Total length (mm)  
+
+8) `wgt`: Weight (g)  
+
+
+***
+
+# Using R Markdown
+
+You are welcome to use **R Markdown** to complete this assignment, but if you'd rather not, I will also happily accept a combination of an `.R` script with your plotting code and a saved version of your figure in a format such as `.png`, `.jpg`, or `.pdf`. If you'd like a primer on **R Markdown**, click [here](../../lectures/week_07/intro_rmarkdown.html).
+
+***
+
+# Task 1
+
+Create a new repo on **GitHub** called `Assignment-5` and populate it with a short `README.md` document that briefly describes your assignment. 
+
+Your repo should ultimately contain the following structure:
+
+* a folder `data` that includes the `.csv` file for the assignment
+
+* a folder `figures` that should include your `.Rmd` or `.R` files used for creating your figures, and any saved figures you might generate
+
+
+# Task 2
+
+Create a new project in **RStudio** from the repo you created in **Task 1**, and work from there to create and edit your code for cleaning and plotting the data. Make sure to commit any changes and push them up to your remote repo.
+
+# Task 3
+
+When you are finished with your assignment, create a new issue within your `Assignment-5` repo that briefly describes what you've done, and tag Mark in the issue so he knows when you're finished.
+
+
+
