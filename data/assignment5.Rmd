@@ -7,6 +7,7 @@ output: rmdformats::downcute
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(scales)
 ```
 
 # Data exploration
@@ -156,7 +157,7 @@ Perhaps not.
 Here, I attempt to check out length and age across locations. I immediately threw an error with the first location because it appears that age data were not collected there, so the code below is adapted to skip that particular question at that location.
 
 ```{r locations}
-## Locations ####
+# Locations 
 loca <- unique(fish$locID)
 colr <- c("darkgray", "darkgreen", "darkblue", "pink")
 counter <- 0
@@ -211,9 +212,37 @@ for (j in 1:length(loca)) {
     hist(len, main=loca[j], ylim=c(0,150), xlim=c(0,800))
   }
 }
+
 ```
 
-Couple of things to note here. Deer Park has a big sample size and no age data. Grand Marais sampled trout represent a smaller age range and may be smaller. This leads me to be curious about the sampling protocol.
+Couple of things to note here. Deer Park has a big sample size and no age data. Grand Marais sampled trout represent a smaller age range and may be smaller. This leads me to be curious about the sampling protocol. But first, I checked out the length-weight relationship by location.
+
+```{r wgtlenloc}
+
+par(mfrow=c(1,1))
+for (k in 1:length(loca)) {
+  wgt <- fish[fish$locID==loca[k],]
+  if (k ==1) {
+    plot(x=wgt$len,
+         y=wgt$wgt,
+         pch=19,
+         col=colr[k])
+  } else {
+    points(x=wgt$len,
+           y=wgt$wgt,
+           pch=21,
+           col=colr[k])
+  }
+  
+}
+
+legend(x="topleft",
+       legend=loca,
+       col=colr,
+       pch=19,
+       bty="n")
+
+```
 
 ## You know what grinds my Gears?
 People who chew with their mouth open. But that is neither here nor there. I'm curious about how many mesh sizes there are and how frequently there were used, by location. 
@@ -273,3 +302,272 @@ hist(dep_f, ylim=c(0,130))
 But this again yields nothing to write home about.
 
 # Data exposition
+I decided to plot the length-weight relationship by location and mesh size. I thought it would be interesting to see what the length and weight frequencies by location would look like as marginal plots. I have to stop for now, but to further make this a publication ready plot: larger font sizes all around and fiddling around to minimize the large amount of whitespace. I suspect this could have been easier if I used `ggplot2`, but this was faster than me learning how to use that package.
+
+The code is hideous, so I'll make a visable copy below this plot.
+
+```{r hidden, echo=FALSE, fig.show="hide"}
+xhist <- hist(fish$wgt[-out])
+histlist <- list()
+
+for (ii in 1:length(loca)) {
+  len <- fish[fish$locID==loca[ii],]
+  histlist[[ii]] <- hist(len$len,
+                         xlim=c(0,800),
+                         main="",
+                         xaxt="n",
+                         xlab="",
+                         ylab="",
+                         border=alpha(colr[ii], 0.3),
+                         col=alpha(colr[ii], 0.3))
+}
+
+histlist2 <- list()
+for (ii in 1:length(loca)) {
+  len <- fish[fish$locID==loca[ii],]
+  histlist2[[ii]] <- hist(len$wgt,
+                         xlim=c(0,5000),
+                         main="",
+                         xaxt="n",
+                         xlab="",
+                         ylab="",
+                         border=alpha(colr[ii], 0.3),
+                         col=alpha(colr[ii], 0.3))
+}
+
+```
+
+```{r exposition, fig.asp=1.15, echo=FALSE}
+mat <- matrix(c(1,2,1,2,0,3), ncol=3)
+
+layout(mat, widths=c(5,3), heights=c(0.5,2))
+# layout.show(3)
+
+par(mar=c(1,5,5,0))
+
+for (ii in 1:length(loca)) {
+  if (ii==1) {
+    plot(histlist[[ii]],
+     border=alpha(colr[ii], 0.3),
+     col=alpha(colr[ii], 0.3),
+     xaxt="n",
+     ylab="",
+     main="")
+  } else {
+    plot(histlist[[ii]], 
+     border=alpha(colr[ii], 0.3),
+     col=alpha(colr[ii], 0.3), add=T)
+  }
+}
+
+
+
+par(mar=c(5,5,1,1))
+for (k in 1:length(loca)) {
+  wgt <- fish[fish$locID==loca[k],]
+  if (k ==1) {
+    plot(x=wgt$len,
+         y=wgt$wgt,
+         pch=20,
+         cex=wgt$mesh,
+         col=alpha(colr[k], 0.3),
+         ylab="Weight (g)",
+         xlab="Length (mm)",
+         bty="l",
+         xlim=c(0,800),
+         ylim=c(0,5000),
+         xaxs="i",
+         yaxs="i",
+         cex.lab=1.5)
+  } else {
+    points(x=wgt$len,
+           y=wgt$wgt,
+           pch=20,
+           cex=wgt$mesh,
+           col=alpha(colr[k], 0.3))
+  }
+  
+}
+
+legend(#x=150,
+       #y=5050,
+       x="topleft",
+       legend=loca,
+       col=alpha(colr, 0.3),
+       pch=20,
+       pt.cex=4,
+       bty="n", 
+       horiz=F,
+       cex=1.5)
+
+legend(#x=790,
+       #y=5000,
+       x="bottomleft",
+       legend=sort(unique(wgt$mesh)),
+       pch=20,
+       y.intersp=2.2,
+       x.intersp=2,
+       bty="n",
+       xpd=F,
+       pt.cex=sort(unique(wgt$mesh)),
+       title="Mesh size (mm)",
+       col=alpha("black", 0.3),
+       cex=1.5)
+
+par(mar=c(5,1,5,0))
+
+for (jj in 1:length(loca)) {
+  if (jj==1) {
+    barplot(histlist2[[jj]]$counts, 
+            horiz=T,
+            space=0,
+            xlim=c(0,175),
+            yaxt="n",
+            border=alpha(colr[jj], 0.3),
+            col=alpha(colr[jj], 0.3))
+  } else {
+        barplot(histlist2[[jj]]$counts, 
+            horiz=T,
+            space=0,
+            xlim=c(0,175),
+            yaxt="n",
+            border=alpha(colr[jj], 0.3),
+            col=alpha(colr[jj], 0.3),
+            add=T)
+  }
+  
+}
+
+```
+
+## Exposition plot code
+```{r exposition2, fig.asp=1.15, fig.show="hide"}
+# This creates lists of hist() to be used later for overplotting
+# xhist <- hist(fish$wgt[-out])
+histlist <- list()
+
+for (ii in 1:length(loca)) {
+  len <- fish[fish$locID==loca[ii],]
+  histlist[[ii]] <- hist(len$len,
+                         xlim=c(0,800),
+                         main="",
+                         xaxt="n",
+                         xlab="",
+                         ylab="",
+                         border=alpha(colr[ii], 0.3),
+                         col=alpha(colr[ii], 0.3))
+}
+
+histlist2 <- list()
+for (ii in 1:length(loca)) {
+  len <- fish[fish$locID==loca[ii],]
+  histlist2[[ii]] <- hist(len$wgt,
+                         xlim=c(0,5000),
+                         main="",
+                         xaxt="n",
+                         xlab="",
+                         ylab="",
+                         border=alpha(colr[ii], 0.3),
+                         col=alpha(colr[ii], 0.3))
+}
+
+mat <- matrix(c(1,2,1,2,0,3), ncol=3)
+
+# I used layout() so I could have a multipanel plot of different sizes
+layout(mat, widths=c(5,3), heights=c(0.5,2))
+# layout.show(3)
+
+# overplot the length histogram in the first row of layout
+par(mar=c(1,5,5,0))
+
+for (ii in 1:length(loca)) {
+  if (ii==1) {
+    plot(histlist[[ii]],
+     border=alpha(colr[ii], 0.3),
+     col=alpha(colr[ii], 0.3),
+     xaxt="n",
+     ylab="",
+     main="")
+  } else {
+    plot(histlist[[ii]], 
+     border=alpha(colr[ii], 0.3),
+     col=alpha(colr[ii], 0.3), add=T)
+  }
+}
+
+# Plot the length-weight relationship
+par(mar=c(5,5,1,1))
+for (k in 1:length(loca)) {
+  wgt <- fish[fish$locID==loca[k],]
+  if (k ==1) {
+    plot(x=wgt$len,
+         y=wgt$wgt,
+         pch=20,
+         cex=wgt$mesh,
+         col=alpha(colr[k], 0.3),
+         ylab="Weight (g)",
+         xlab="Length (mm)",
+         bty="l",
+         xlim=c(0,800),
+         ylim=c(0,5000),
+         xaxs="i",
+         yaxs="i",
+         cex.lab=1.5)
+  } else {
+    points(x=wgt$len,
+           y=wgt$wgt,
+           pch=20,
+           cex=wgt$mesh,
+           col=alpha(colr[k], 0.3))
+  }
+  
+}
+# Location legend
+legend(x="topleft",
+       legend=loca,
+       col=alpha(colr, 0.3),
+       pch=20,
+       pt.cex=4,
+       bty="n", 
+       horiz=F,
+       cex=1.5)
+
+# Mesh size legend
+legend(x="bottomleft",
+       legend=sort(unique(wgt$mesh)),
+       pch=20,
+       y.intersp=2.2,
+       x.intersp=2,
+       bty="n",
+       xpd=F,
+       pt.cex=sort(unique(wgt$mesh)),
+       title="Mesh size (mm)",
+       col=alpha("black", 0.3),
+       cex=1.5)
+
+# Overplot the weight histogram by location
+par(mar=c(5,1,5,0))
+
+for (jj in 1:length(loca)) {
+  if (jj==1) {
+    barplot(histlist2[[jj]]$counts, 
+            horiz=T,
+            space=0,
+            xlim=c(0,175),
+            yaxt="n",
+            border=alpha(colr[jj], 0.3),
+            col=alpha(colr[jj], 0.3))
+  } else {
+        barplot(histlist2[[jj]]$counts, 
+            horiz=T,
+            space=0,
+            xlim=c(0,175),
+            yaxt="n",
+            border=alpha(colr[jj], 0.3),
+            col=alpha(colr[jj], 0.3),
+            add=T)
+  }
+  
+}
+
+```
