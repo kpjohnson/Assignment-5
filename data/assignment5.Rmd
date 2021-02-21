@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(scales)
 ```
 
-# Data exploration
+# Exploratory plots
 
 ## Data description
 
@@ -301,7 +301,7 @@ hist(dep_f, ylim=c(0,130))
 
 But this again yields nothing to write home about.
 
-# Data exposition
+# Expository plot
 I decided to plot the length-weight relationship by location and mesh size. I thought it would be interesting to see what the length and weight frequencies by location would look like as marginal plots. I have to stop for now, but to further make this a publication ready plot: larger font sizes all around and fiddling around to minimize the large amount of whitespace. I suspect this could have been easier if I used `ggplot2`, but this was faster than me learning how to use that package.
 
 The code is hideous, so I'll make a visable copy below this plot.
@@ -440,7 +440,7 @@ for (jj in 1:length(loca)) {
 
 ```
 
-## Exposition plot code
+## Expository plot code
 ```{r exposition2, fig.asp=1.15, fig.show="hide"}
 # This creates lists of hist() to be used later for overplotting
 # xhist <- hist(fish$wgt[-out])
