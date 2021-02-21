@@ -29,3 +29,6 @@ A data frame with 780 observations on the following 8 variables.
 
 
 ***
+
+## Accessing the completed assignment
+You will find the R Markdown file `assignment5.rmd` in the `data` directory of this repository. You will likely need two packages to `knit` this to HTML: `rmdformats` and `scales`. Of course, don't forget the trout data set (.csv) in the `data` directory.
